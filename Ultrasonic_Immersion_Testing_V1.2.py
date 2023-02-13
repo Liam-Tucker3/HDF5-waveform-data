@@ -125,7 +125,7 @@ def writeToHDF5(this_tuple):
     print(f"Wrote Source Pos {s_index} Receiver Pos {r_index} data to HDF5 file in {thread_elapsed_time:0.2F} seconds.")
 
 """
-Function to create, initial hdf5 file
+Function to create initial hdf5 file
 
 """
 
@@ -187,7 +187,8 @@ def motorControl(h5_filename, ovr_metadata):
     start_time = time.perf_counter()    
     
     # Specifying which data we are capturing
-    acq_params = setAcqMode("FMC")
+    acq_params = setAcqMode("FMC") # Performing a standard scan
+    # acq_params = [ [1, 9, 15, 23], [8, 16, 24, 32] ]  # Performing a custom scan
     f = open('sourceModes.csv', 'w+', newline='')
     with f:
         write = csv.writer(f)
@@ -241,7 +242,7 @@ def motorControl(h5_filename, ovr_metadata):
                 
             fan_beam_angle = 240 - source_angle - j*30
            
-            
+            # Calling data acquisition script
             eng1.FMC_Imasonics_MA_TM_FullAcquisition_max_copy_test_1108(nargout=0)
             
             time.sleep(1)
@@ -249,6 +250,7 @@ def motorControl(h5_filename, ovr_metadata):
             while os.path.isfile('Busy.txt') is True:
                 time.sleep(1)  
     
+            # Writing data to HDF5 file in parallel
             RcvData = eng1.workspace['RcvData']
             arg_tuple = (h5_filename, s_groupname, r_groupname, RcvData, i+1, j+1)
             this_thread = threading.Thread(target=writeToHDF5, args=(arg_tuple,))
